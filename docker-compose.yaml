@@ -1,0 +1,91 @@
+services:
+  auth-db:
+    image: postgres:14.15-alpine
+    environment:
+      - POSTGRES_DB=auth_db
+      - POSTGRES_USER=auth_db
+      - POSTGRES_PASSWORD=auth_db
+      - PGUSER=auth_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+  auth-ldap:
+    image: 389ds/dirsrv:3.1
+    environment:
+      - DS_DM_PASSWORD=auth_ldap_admin
+    shm_size: 256m
+  auth-ldapinit:
+    build: ./auth-ldapinit
+    volumes:
+      - ./auth-ldapinit/ldif/:/ldif/
+    environment:
+      - DS_DM_PASSWORD=auth_ldap_admin
+      - DS_BASE_DN=dc=example,dc=org
+    depends_on:
+      - auth-ldap
+  auth-server:
+    image: quay.io/keycloak/keycloak:26.0.7
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./auth-server/realm:/opt/keycloak/data/import:ro
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://auth-db:5432/auth_db
+      - KC_DB_USERNAME=auth_db
+      - KC_DB_PASSWORD=auth_db
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    command:
+      - start-dev
+      - --import-realm
+    restart: always
+    depends_on:
+      - auth-db
+      - auth-ldap
+      - auth-ldapinit
+  web-app:
+    image: node:20
+    working_dir: /app
+    volumes:
+      - ./web-app/app:/app
+    command: sh -c "yarn && yarn dev --host"
+    ports:
+      - "5173:5173"
+  resource-db:
+    image: postgres:14.15-alpine
+    environment:
+      - POSTGRES_DB=resource_db
+      - POSTGRES_USER=resource_db
+      - POSTGRES_PASSWORD=resource_db
+      - PGUSER=resource_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./resource-db/init/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - resource-db-data:/var/lib/postgresql/data 
+  resource-server:
+    build: ./resource-server
+    environment:
+      - DB_HOST=resource-db
+      - DB_PORT=5432
+      - DB_NAME=resource_db
+      - DB_USERNAME=resource_db
+      - DB_PASSWORD=resource_db
+    volumes:
+      - ./resource-server/app:/app
+    ports:
+      - "8081:8081"
+    depends_on:
+      - resource-db
+
+volumes:
+  auth-db-data:
+  resource-db-data:

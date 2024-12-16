@@ -1,0 +1,29 @@
+.code-container {
+  position: relative;
+  background-color: #f5f5f5;
+  padding: 22px 6px 6px 6px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: auto;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.language-label {
+  background-color: #007acc;
+  color: white;
+  font-weight: bold;
+  padding: 2px 4px;
+  font-size: 10px;
+  border-radius: 2px;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 1;
+}
+
+pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 12px;
+}
