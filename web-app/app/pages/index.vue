@@ -50,6 +50,10 @@
   <div>
     <h1>Hello OAuth 2.0</h1>
     <div>
+      <h2>構成</h2>
+      <img src="@/assets/images/oauth2_demo_architecture.png" class="responsive-image">
+    </div>
+    <div>
       <h2>Authorization Codeフローでトークン取得</h2>
         <div class="code-container">
           <div class="language-label">typescript</div>
@@ -75,3 +79,9 @@
     </div>
   </div>
 </template>
+<style scoped>
+  .responsive-image {
+    max-width: 90%;
+    height: auto;
+  }
+</style>
