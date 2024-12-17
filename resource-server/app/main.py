@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 KEYCLOAK_HOST = "http://auth-server:8080"
 KEYCLOAK_INTROSPECT_URL = f"{KEYCLOAK_HOST}/realms/hello-oauth2/protocol/openid-connect/token/introspect"
-KEYCLOAK_GET_USERINFO_URL = f"{KEYCLOAK_HOST}//realms/hello-oauth2/protocol/openid-connect/userinfo"
+KEYCLOAK_GET_USERINFO_URL = f"{KEYCLOAK_HOST}/realms/hello-oauth2/protocol/openid-connect/userinfo"
 KEYCLOAK_CLIENT_ID = "hello-resource-server-client"
 KEYCLOAK_CLIENT_SECRET = "3QGO6blPbBJcFaffEwH3QYiUOSWU8CFL"
 
@@ -18,7 +18,7 @@ KEYCLOAK_CLIENT_SECRET = "3QGO6blPbBJcFaffEwH3QYiUOSWU8CFL"
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

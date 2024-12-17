@@ -10,8 +10,8 @@ docker compose up
 
 ## フロントエンドとなるWebアプリケーションへのアクセス方法
 
-- ブラウザで `http://localhost:5173` にアクセス
-- `ログイン` ボタンを押す
+- ブラウザで `http://localhost:3000` にアクセス
+- 認証情報
   - username: `user01`
   - password: `user01`
 

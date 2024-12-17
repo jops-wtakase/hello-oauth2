@@ -55,7 +55,7 @@ services:
       - ./web-app/app:/app
     command: sh -c "yarn && yarn dev --host"
     ports:
-      - "5173:5173"
+      - "3000:3000"
   resource-db:
     image: postgres:14.15-alpine
     environment:
