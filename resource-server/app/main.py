@@ -8,11 +8,12 @@ import psycopg2
 from pydantic import BaseModel
 
 
-KEYCLOAK_HOST = "http://auth-server:8080"
-KEYCLOAK_INTROSPECT_URL = f"{KEYCLOAK_HOST}/realms/hello-oauth2/protocol/openid-connect/token/introspect"
-KEYCLOAK_GET_USERINFO_URL = f"{KEYCLOAK_HOST}/realms/hello-oauth2/protocol/openid-connect/userinfo"
-KEYCLOAK_CLIENT_ID = "hello-resource-server-client"
-KEYCLOAK_CLIENT_SECRET = "3QGO6blPbBJcFaffEwH3QYiUOSWU8CFL"
+AUTH_SERVER = "http://auth-server:8080"
+INTROSPECT_URL = f"{AUTH_SERVER}/realms/hello-oauth2/protocol/openid-connect/token/introspect"
+GET_USERINFO_URL = f"{AUTH_SERVER}/realms/hello-oauth2/protocol/openid-connect/userinfo"
+RESOURCE_SERVER_CLIENT_ID = "hello-resource-server-client"
+RESOURCE_SERVER_CLIENT_SECRET = "3QGO6blPbBJcFaffEwH3QYiUOSWU8CFL"
+WEB_APP_CLIENT_SERVICE_ACCOUNT_ID = "a11f63fc-3626-4c4b-9c2e-8b812c04db57"
 
 
 app = FastAPI()
@@ -41,12 +42,12 @@ class TokenIntrospectionResponse(BaseModel):
 
 
 async def introspect_token(token: str):
-    credentials = f"{KEYCLOAK_CLIENT_ID}:{KEYCLOAK_CLIENT_SECRET}"
+    credentials = f"{RESOURCE_SERVER_CLIENT_ID}:{RESOURCE_SERVER_CLIENT_SECRET}"
     encoded_credentials = b64encode(credentials.encode()).decode()
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            KEYCLOAK_INTROSPECT_URL,
+            INTROSPECT_URL,
             data={
                 "token": token,
             },
@@ -62,7 +63,7 @@ async def introspect_token(token: str):
 async def get_userinfo(token: str):
     async with httpx.AsyncClient() as client:
         response = await client.get(
-            KEYCLOAK_GET_USERINFO_URL,
+            GET_USERINFO_URL,
             headers={
                 "Authorization": f"Bearer {token}",
             }
@@ -88,9 +89,14 @@ async def get_todos(token: str = Depends(oauth2_scheme)):
 
     get_userinfo_response = await get_userinfo(token)
     auth_user_id = get_userinfo_response["sub"]
-    todos = get_todos_from_db(auth_user_id)
 
-    return todos
+    print(get_userinfo_response)
+    print(auth_user_id)
+    if auth_user_id == WEB_APP_CLIENT_SERVICE_ACCOUNT_ID:
+        # Client Credentialsトークンの場合はユーザからのアクセスではなくHello Web Appからのアクセスとみなし全件取得する
+        return get_all_todos_from_db()
+    else:
+        return get_todos_from_db(auth_user_id)
 
 
 @app.post("/todos")
@@ -116,6 +122,22 @@ async def add_todo(todo: Todo, token: str = Depends(oauth2_scheme)):
     return {"message": "Todo added successfully", "todo": todo}
 
 
+def get_all_todos_from_db():
+    conn = psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT"),
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USERNAME"),
+        password=os.getenv("DB_PASSWORD")
+    )
+    cursor = conn.cursor()
+    cursor.execute("SELECT u.auth_user_id, t.description FROM todos t JOIN users u ON t.user_id = u.user_id;")
+    todos = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return [{"user_id": todo[0], "todo": todo[1]} for todo in todos] if todos else []
+
+
 def get_todos_from_db(auth_user_id: str):
     conn = psycopg2.connect(
         host=os.getenv("DB_HOST"),
@@ -125,11 +147,11 @@ def get_todos_from_db(auth_user_id: str):
         password=os.getenv("DB_PASSWORD")
     )
     cursor = conn.cursor()
-    cursor.execute(f"SELECT t.description FROM todos t JOIN users u ON t.user_id = u.user_id WHERE u.auth_user_id = '{auth_user_id}';")
+    cursor.execute(f"SELECT u.auth_user_id, t.description FROM todos t JOIN users u ON t.user_id = u.user_id WHERE u.auth_user_id = '{auth_user_id}';")
     todos = cursor.fetchall()
     cursor.close()
     conn.close()
-    return [todo[0] for todo in todos] if todos else []
+    return [{"user_id": todo[0], "todo": todo[1]} for todo in todos] if todos else []
 
 
 def add_todo_to_db(auth_user_id: str, todo: Todo):

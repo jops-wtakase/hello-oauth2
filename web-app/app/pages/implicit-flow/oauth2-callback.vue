@@ -2,10 +2,10 @@
   import { onMounted, ref } from 'vue'
   import RouterUtil from '~/utils/router-util.ts'
 
-  const accessTokenRef = ref<string>('')
-  const urlRef = ref<string>('')
+  const accessTokenRef = ref<string>()
+  const urlRef = ref<string>()
   const getTodosResponseRef = ref<object>()
-  const todoDescriptionRef = ref<string>('')
+  const todoDescriptionRef = ref<string>()
   const addTodoResponseRef = ref<object>()
 
   const { goToTop } = RouterUtil()
@@ -51,7 +51,8 @@
       <h1>アクセストークンを使ってリソースサーバからTODO情報取得</h1>
       <button @click="useGetTodos">TODO情報の取得</button>
       <div v-if="getTodosResponseRef">
-        レスポンス: {{ JSON.stringify(getTodosResponseRef) }}
+        <h3>レスポンス:</h3>
+        <div><pre>{{ JSON.stringify(getTodosResponseRef, null, 2) }}</pre></div>
       </div>
     </div>
     <div v-if="accessTokenRef">
@@ -59,7 +60,8 @@
       <input v-model="todoDescriptionRef" type="text" />
       <button @click="useAddTodo">TODO情報の追加</button>
       <div v-if="addTodoResponseRef">
-        レスポンス: {{ JSON.stringify(addTodoResponseRef) }}
+        <h3>レスポンス:</h3>
+        <div><pre>{{ JSON.stringify(addTodoResponseRef, null, 2) }}</pre></div>
       </div>
     </div>
   </div>

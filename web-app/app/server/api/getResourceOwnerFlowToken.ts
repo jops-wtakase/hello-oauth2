@@ -3,20 +3,20 @@ import axios from 'axios'
 export default defineEventHandler(async (event) => {
   const authServer = 'http://auth-server:8080'
   const issueTokenEndpoint = '/realms/hello-oauth2/protocol/openid-connect/token'
-  const clientId = 'hello-web-app-client'
-  const clientSecret = 'NdEOx8Zc7AskmRQeFri1Joa488FeRuel'
-  const authCodeFlowRedirectUri = 'http://localhost:3000/auth-code-flow/oauth2-callback'
+  const clientId = 'hello-web-app-for-resource-owner-flow'
+  const clientSecret = 'PCOoWwoeb6DA6hiCOJjPxhv6Ihi3kTCW'
 
   try {
     const input = await readBody(event)
     const response = await axios.post(
       `${authServer}${issueTokenEndpoint}`,
       {
-        code: input.code,
-        grant_type: 'authorization_code',
-        redirect_uri: authCodeFlowRedirectUri,
+        grant_type: 'password',
         client_id: clientId,
         client_secret: clientSecret,
+        username: input.username,
+        password: input.password,
+        scope: input.scope,
       },
       {
         headers: {

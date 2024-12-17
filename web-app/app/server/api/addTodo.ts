@@ -4,15 +4,15 @@ export default defineEventHandler(async (event) => {
   const resourceServer = 'http://resource-server:8081'
 
   try {
-    const body = await readBody(event)
+    const input = await readBody(event)
     const response = await axios.post(
       `${resourceServer}/todos`,
       {
-        description: body.description,
+        description: input.description,
       },
       {
         headers: {
-          Authorization: `Bearer ${body.accessToken}`,
+          Authorization: `Bearer ${input.accessToken}`,
         },
       },
     )

@@ -1,5 +1,8 @@
 <script setup lang="ts">
   import { ref } from 'vue'
+  import RouterUtil from '~/utils/router-util.ts'
+
+  const { pushRouter } = RouterUtil()
 
   const authCodeFlowLogin = () => {
     const authServer = 'http://localhost:8080'
@@ -11,7 +14,7 @@
     window.location.href = `${authServer}${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=${responseType}&prompt=consent`
   }
 
-  const fetchImplicitFlowToken = () => {
+  const getImplicitFlowToken = () => {
     const authServer = 'http://localhost:8080'
     const authEndpoint = '/realms/hello-oauth2/protocol/openid-connect/auth'
     const clientId = 'hello-web-app-client'
@@ -31,7 +34,7 @@
   const responseType = 'code'
   window.location.href = \`\${authServer}\${authEndpoint}?client_id=\${clientId}&redirect_uri=\${redirectUri}&scope=\${scope}&response_type=\${responseType}&prompt=consent\`
 }`)
-  const implicitFlowCodeRef = ref<string>(`const fetchImplicitFlowToken = () => {
+  const implicitFlowCodeRef = ref<string>(`const getImplicitFlowToken = () => {
   const authServer = 'http://localhost:8080'
   const authEndpoint = '/realms/hello-oauth2/protocol/openid-connect/auth'
   const clientId = 'hello-web-app-client'
@@ -60,23 +63,15 @@
           <div class="language-label">typescript</div>
           <pre><code>{{ implicitFlowCodeRef }}</code></pre>
         </div>
-        <button @click="fetchImplicitFlowToken">トークン取得</button>
+        <button @click="getImplicitFlowToken">トークン取得</button>
     </div>
     <div>
       <h2>Resource Owner Password Credentialsフローでトークン取得</h2>
-        <div class="code-container">
-          <div class="language-label">typescript</div>
-          <pre><code>{{ implicitFlowCodeRef }}</code></pre>
-        </div>
-        <button @click="fetchImplicitFlowToken">トークン取得</button>
+        <button @click="pushRouter('/resource-owner-flow')">トークン取得</button>
     </div>
     <div>
       <h2>Client Credentialsフローでトークン取得</h2>
-        <div class="code-container">
-          <div class="language-label">typescript</div>
-          <pre><code>{{ implicitFlowCodeRef }}</code></pre>
-        </div>
-        <button @click="fetchImplicitFlowToken">トークン取得</button>
+        <button @click="pushRouter('/client-credentials-flow')">トークン取得</button>
     </div>
   </div>
 </template>
